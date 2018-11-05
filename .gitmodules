@@ -1,0 +1,3 @@
+[submodule "win32/ReflectiveLdr"]
+	path = win32/ReflectiveLdr
+	url = https://github.com/rokups/ReflectiveLdr

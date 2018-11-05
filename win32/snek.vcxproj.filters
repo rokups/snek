@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="winxp.c" />
+    <ClCompile Include="actctx.c" />
+    <ClCompile Include="ReflectiveLdr\ReflectiveLdr.cpp">
+      <Filter>ReflectiveLdr</Filter>
+    </ClCompile>
+    <ClCompile Include="snek.cpp" />
+    <ClCompile Include="miniz.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ReflectiveLdr">
+      <UniqueIdentifier>{ad74e2a8-115d-48f6-9e68-bc4003584959}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{a86fd90a-551f-47ac-b3fd-6bc9f95af0ad}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ReflectiveLdr\ReflectiveLdr.h">
+      <Filter>ReflectiveLdr</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectiveLdr\ReflectiveLdr_p.h">
+      <Filter>ReflectiveLdr</Filter>
+    </ClInclude>
+    <ClInclude Include="miniz.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libs\Python36_d.lib">
+      <Filter>libs</Filter>
+    </Library>
+    <Library Include="libs\Python3.lib">
+      <Filter>libs</Filter>
+    </Library>
+    <Library Include="libs\Python36.lib">
+      <Filter>libs</Filter>
+    </Library>
+  </ItemGroup>
+</Project>
