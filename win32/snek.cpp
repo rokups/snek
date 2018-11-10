@@ -232,6 +232,20 @@ void insert_module(_frozen* dest, const char* name, const void* code, int csize,
     dest->size = is_package ? -csize : csize;
     memcpy((void*)dest->code, code, csize);
 }
+
+void maybe_redirect_import(Reflective::Ldr& ldr, const char* module_name, const char* proc_name, FARPROC new_proc)
+{
+    HMODULE hModule = LoadLibrary(module_name);
+    if (hModule != 0)
+    {
+        bool has_import = GetProcAddress(hModule, proc_name) != nullptr;
+        FreeLibrary(hModule);
+        if (has_import)
+            return;
+    }
+    ldr.SetImportAlternative(module_name, proc_name, new_proc);
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     uint8_t* packed_bundle = 0;
@@ -245,13 +259,20 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #if _DEBUG
     if (stricmp((const char*)&section->Name, ".py") != 0)
     {
-        FILE* fp = fopen("test.zip", "rb");
-        fseek(fp, 0, SEEK_END);
-        file_size = ftell(fp);
-        rewind(fp);
-        packed_bundle = (uint8_t*)malloc(file_size);
-        fread(packed_bundle, 1, file_size, fp);
-        fclose(fp);
+        if (FILE* fp = fopen(lpCmdLine, "rb"))
+        {
+            fseek(fp, 0, SEEK_END);
+            file_size = ftell(fp);
+            rewind(fp);
+            packed_bundle = (uint8_t*)malloc(file_size);
+            fread(packed_bundle, 1, file_size, fp);
+            fclose(fp);
+        }
+        else
+        {
+            MessageBox(0, "Specified zip file could not be read.", "Error", 0);
+            return -1;
+        }
     }
     else
 #endif
@@ -276,13 +297,10 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     _PyImport_FrozenModules.resize(file_count + 1);
     frozen_native.resize(1);
 
-    OSVERSIONINFO info;
-    GetVersionEx(&info);
-
     // Python 3.5+ no longer supports windows XP and uses these two new APIs. Let loader provide fake imports and make
     // latest python work on XP.
-    ldr.SetImportAlternative("kernel32.dll", "GetTickCount64", (FARPROC)&_GetTickCount64);
-    ldr.SetImportAlternative("kernel32.dll", "GetFinalPathNameByHandleW", (FARPROC)&_GetFinalPathNameByHandleW);
+    maybe_redirect_import(ldr, "kernel32.dll", "GetTickCount64", (FARPROC)&_GetTickCount64);
+    maybe_redirect_import(ldr, "kernel32.dll", "GetFinalPathNameByHandleW", (FARPROC)&_GetFinalPathNameByHandleW);
 
     for (; index < file_count; index++)
     {
@@ -301,8 +319,7 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
             hModule = (HMODULE)ldr.MapImageAndExecute(extracted_data, 0);
             if (hModule)
                 CLIENT_LOG("memory-loaded %s", file_name);
-
-            if (hModule == 0)
+            else
                 CLIENT_LOG("Failed to load %s", file_name);
 
             _Py_DeactivateActCtx(cookie);

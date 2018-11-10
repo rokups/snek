@@ -334,7 +334,7 @@ def pe_add_section(pe, data: bytes, name):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--output', default='package.zip')
+    parser.add_argument('-o', '--output', default='package.exe')
     parser.add_argument('-t', '--template', required=True)
     parser.add_argument('main', help='Main application script')
     parser.add_argument('args', nargs='*')
